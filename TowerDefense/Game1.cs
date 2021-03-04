@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace TowerDefense
 {
@@ -11,6 +12,15 @@ namespace TowerDefense
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        Map testMap;
+        Texture2D pixel;
+        int squareSize;
+        Grid grid;
+
+        // Debug
+        private TimeSpan moveTimer = TimeSpan.Zero;
+        private TimeSpan moveTimerTarget = TimeSpan.FromMilliseconds(500);
+        private int debugMapTraverserPositionIndex = 0;
 
         public Game1()
         {
@@ -27,7 +37,6 @@ namespace TowerDefense
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
             base.Initialize();
         }
 
@@ -39,7 +48,17 @@ namespace TowerDefense
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
+            testMap = new Map();
+            testMap.ImportMap(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\mapFileFormat.json");
+            pixel = new Texture2D(graphics.GraphicsDevice, 1, 1);
+            pixel.SetData(new Color[] { Color.White });
+            
+            grid = new Grid(testMap);
+            grid.SetGridSquares();
+            squareSize = 700 /(int)grid.GridSize.X;
+            graphics.PreferredBackBufferHeight = 700;
+            graphics.PreferredBackBufferWidth = 700;
+            graphics.ApplyChanges();
             // TODO: use this.Content to load your game content here
         }
 
@@ -59,9 +78,18 @@ namespace TowerDefense
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            moveTimer += gameTime.ElapsedGameTime;
+            if (moveTimer < moveTimerTarget) return;
 
+            if (debugMapTraverserPositionIndex == testMap.path.Count - 1) return;
+
+            moveTimer = TimeSpan.Zero;
+            debugMapTraverserPositionIndex++;
+
+            //testMap.ImportMap(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\map1.txt");
+            //testMap.MapFileFormatTest(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\mapFileFormat.txt");
+            //testMap.ImportMap(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\mapFileFormat.txt");
+            
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -76,6 +104,12 @@ namespace TowerDefense
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
+            spriteBatch.Begin();
+            grid.Draw(spriteBatch, pixel, squareSize);
+
+            spriteBatch.Draw(pixel, new Rectangle((testMap.path[debugMapTraverserPositionIndex] * squareSize).ToPoint(), new Point(squareSize, squareSize)), Color.Red);
+
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }

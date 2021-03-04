@@ -6,14 +6,38 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using System.Text.Json;
+using System.Drawing;
 
 namespace TowerDefense
 {
     class Map
     {
-        Vector2 mapSize;
-        List<Vector2> path;
+        public BasicVector2 mapSize { get; set; }
+        public List<BasicVector2> vertices { get; set; }
+        public List<Vector2> path { get; set; }
+
+
+        public Map()
+        {
+            mapSize = Vector2.Zero;
+            path = new List<Vector2>();
+
+        }
+
+        public void MapFileFormatTest(string filePath)
+        {
+            Map testMap = new Map();
+            testMap.mapSize = new Vector2(20, 20);
+            testMap.vertices = new List<BasicVector2>()
+            {
+                { new BasicVector2(0, 2)},
+                { new BasicVector2(2, 5)},
+                { new BasicVector2(5, 7)}
+            };
+            var jsonText = JsonSerializer.Serialize(testMap); // Formatting.Indented;
+            File.WriteAllText(filePath, jsonText);
+        }
 
         /// <summary>
         /// Map file format:
@@ -26,33 +50,53 @@ namespace TowerDefense
         ///start point
         ///as many vertexies as there will be, the last one will be the end point
         /// </summary>
-        void ImportMap(string mapFilePath)
+        public void ImportMap(string mapFilePath)
         {
             //string[] mapLines = File.ReadAllLines("mapFilePath");
 
+            //var test1 = JsonConvert.SerializeObject(Map);
+            string fileContents = File.ReadAllText(mapFilePath);
+            var map = JsonSerializer.Deserialize<Map>(fileContents);
 
-            string[] mapLines = File.ReadAllLines(mapFilePath);
-            string regexPattern = @"^(?<x>\d+)[:, ](?<y>\d+)$";
-            var regex = new Regex(regexPattern);
-            List<Vector2> data = new List<Vector2>();
-            foreach (var line in mapLines)
-            {
-                foreach (Match m in regex.Matches(line))
-                {
-                    data.Add(new Vector2(int.Parse(m.Groups["x"].Value), int.Parse(m.Groups["y"].Value)));
-                }
-            }
+            mapSize = map.mapSize;
+            vertices = map.vertices;
 
-            mapSize = data[0];
-            for (int i = 1; i < data.Count-1; i++)
+            //string[] mapLines = File.ReadAllLines(mapFilePath);
+            //string regexPattern = @"^(?<x>\d+)[:, ]{1,2}(?<y>\d+)$";
+            //var regex = new Regex(regexPattern);
+            //List<Vector2> data = new List<Vector2>();
+            //foreach (var line in mapLines)
+            //{
+            //    foreach (Match m in regex.Matches(line))
+            //    {
+            //        data.Add(new Vector2(int.Parse(m.Groups["x"].Value), int.Parse(m.Groups["y"].Value)));
+            //    }
+            //}
+
+            //mapSize = data[0];
+            //for (int i = 1; i < data.Count-1; i++)
+            //{
+            //    var line = pathConnectionHelper(data[i], data[i+1]);
+            //    for (int k = 0; k < line.Count; k++)
+            //    {
+            //        path.Add(line[k]);
+            //    }
+            //}
+            //path.Add(data[data.Count - 1]);
+
+            //var test2 = JsonConvert.DeserializeObject<List<Vector2>>(test1);
+
+            for (int i = 0; i < vertices.Count - 1; i++)
             {
-                var line = pathConnectionHelper(data[i], data[i+1]);
+
+                var line = pathConnectionHelper(vertices[i].ToVector2(), vertices[i + 1].ToVector2());
                 for (int k = 0; k < line.Count; k++)
                 {
-                    path.Add(line[i]);
+                    path.Add(line[k]);
                 }
             }
-            path.Add(data[data.Count - 1]);
+            path.Add(vertices[vertices.Count - 1].ToVector2());
+            
         }
 
         (int X, int Y) pathDirectionHelper(Vector2 start, Vector2 end)
@@ -75,7 +119,7 @@ namespace TowerDefense
             {
                 y = 1;
             }
-            if (start.Y - end.Y > 0)
+            else if (start.Y - end.Y > 0)
             {
                 y = -1;
             }
@@ -93,7 +137,7 @@ namespace TowerDefense
                 linePath.Add(currentPosition);
                 currentPosition.Y += lineDirection.Y;
             }
-            while(currentPosition.X != endPoint.X)
+            while (currentPosition.X != endPoint.X)
             {
                 linePath.Add(currentPosition);
                 currentPosition.X += lineDirection.X;
