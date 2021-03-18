@@ -8,13 +8,16 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Drawing;
+using System.Text.Json.Serialization;
 
 namespace TowerDefense
 {
     class Map
     {
-        public BasicVector2 mapSize { get; set; }
-        public List<BasicVector2> vertices { get; set; }
+        public Vector2 mapSize { get; set; }
+        public List<Vector2> vertices { get; set; }
+        public Vector2 WalkInFrom { get; set; }
+        public Vector2 WalkOutFrom { get; set; }
         public List<Vector2> path { get; set; }
 
 
@@ -22,23 +25,30 @@ namespace TowerDefense
         {
             mapSize = Vector2.Zero;
             path = new List<Vector2>();
-
         }
 
         public void MapFileFormatTest(string filePath)
         {
             Map testMap = new Map();
             testMap.mapSize = new Vector2(20, 20);
-            testMap.vertices = new List<BasicVector2>()
+            testMap.vertices = new List<Vector2>()
             {
-                { new BasicVector2(0, 2)},
-                { new BasicVector2(2, 5)},
-                { new BasicVector2(5, 7)}
+                { new Vector2(0, 2)},
+                { new Vector2(2, 5)},
+                { new Vector2(5, 7)}
             };
-            var jsonText = JsonSerializer.Serialize(testMap); // Formatting.Indented;
-            File.WriteAllText(filePath, jsonText);
-        }
+            Vector2 test = new Vector2(10, 10);
+            
+            //JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions();
 
+            //var jsonConverter = jsonSerializerOptions.GetConverter(typeof(Vector2));
+            
+            var options = new JsonSerializerOptions { IncludeFields = true, WriteIndented = true };
+            var jsonText = JsonSerializer.Serialize(testMap, options); // Formatting.Indented;
+            File.WriteAllText(filePath, jsonText);
+            var fileContents = File.ReadAllText(filePath);
+            var readingBackTest = JsonSerializer.Deserialize<Map>(fileContents, options);
+        }
         /// <summary>
         /// Map file format:
         /// width
@@ -56,10 +66,13 @@ namespace TowerDefense
 
             //var test1 = JsonConvert.SerializeObject(Map);
             string fileContents = File.ReadAllText(mapFilePath);
-            var map = JsonSerializer.Deserialize<Map>(fileContents);
+            var options = new JsonSerializerOptions { IncludeFields = true, WriteIndented = true };
+            var map = JsonSerializer.Deserialize<Map>(fileContents, options);
 
             mapSize = map.mapSize;
             vertices = map.vertices;
+            WalkInFrom = map.WalkInFrom;
+            WalkOutFrom = map.WalkOutFrom;
 
             //string[] mapLines = File.ReadAllLines(mapFilePath);
             //string regexPattern = @"^(?<x>\d+)[:, ]{1,2}(?<y>\d+)$";
@@ -85,18 +98,18 @@ namespace TowerDefense
             //path.Add(data[data.Count - 1]);
 
             //var test2 = JsonConvert.DeserializeObject<List<Vector2>>(test1);
-
+            path.Add(WalkInFrom);
             for (int i = 0; i < vertices.Count - 1; i++)
             {
 
-                var line = pathConnectionHelper(vertices[i].ToVector2(), vertices[i + 1].ToVector2());
+                var line = pathConnectionHelper(vertices[i], vertices[i + 1]);
                 for (int k = 0; k < line.Count; k++)
                 {
                     path.Add(line[k]);
                 }
             }
-            path.Add(vertices[vertices.Count - 1].ToVector2());
-            
+            path.Add(vertices[vertices.Count - 1]);
+            path.Add(WalkOutFrom);
         }
 
         (int X, int Y) pathDirectionHelper(Vector2 start, Vector2 end)

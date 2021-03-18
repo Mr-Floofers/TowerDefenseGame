@@ -37,5 +37,13 @@
       "Y": 9
     }
   ],
+  "WalkInFrom": {
+    "X": 2,
+    "Y": -1
+  },
+  "WalkOutFrom": {
+    "X": 2,
+    "Y": 10
+  },
   "path": []
 }

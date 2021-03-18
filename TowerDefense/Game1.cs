@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 
 namespace TowerDefense
 {
@@ -16,6 +17,7 @@ namespace TowerDefense
         Texture2D pixel;
         int squareSize;
         Grid grid;
+        Dictionary<Grid.TileKinds, Texture2D> tileTextures;
 
         // Debug
         private TimeSpan moveTimer = TimeSpan.Zero;
@@ -49,11 +51,24 @@ namespace TowerDefense
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             testMap = new Map();
+            //testMap.MapFileFormatTest(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\vector2JsonFormat.json");
             testMap.ImportMap(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\mapFileFormat.json");
             pixel = new Texture2D(graphics.GraphicsDevice, 1, 1);
             pixel.SetData(new Color[] { Color.White });
-            
-            grid = new Grid(testMap);
+
+            tileTextures = new Dictionary<Grid.TileKinds, Texture2D>
+            {
+
+                [Grid.TileKinds.None] = Content.Load<Texture2D>(@"Tiles\land"),
+                [Grid.TileKinds.Vertical] = Content.Load<Texture2D>(@"Tiles\road_6"),
+                [Grid.TileKinds.Horizontal] = Content.Load<Texture2D>(@"Tiles\road_5"),
+                [Grid.TileKinds.TurnFromEntryAboveToLowerRight] = Content.Load<Texture2D>(@"Tiles\road_3"),
+                [Grid.TileKinds.TurnFromEntryBellowToUpperLeft] = Content.Load<Texture2D>(@"Tiles\road_2"),
+                [Grid.TileKinds.TurnFromEntryLeftToUpperRight] = Content.Load<Texture2D>(@"Tiles\road_4"),
+                [Grid.TileKinds.TurnFromEntryRightToLowerLeft] = Content.Load<Texture2D>(@"Tiles\road_1")
+            };
+
+            grid = new Grid(testMap, tileTextures);
             grid.SetGridSquares();
             squareSize = 700 /(int)grid.GridSize.X;
             graphics.PreferredBackBufferHeight = 700;
@@ -101,7 +116,7 @@ namespace TowerDefense
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Green);
 
             // TODO: Add your drawing code here
             spriteBatch.Begin();
