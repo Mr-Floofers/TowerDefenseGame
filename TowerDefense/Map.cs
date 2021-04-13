@@ -12,43 +12,56 @@ using System.Text.Json.Serialization;
 
 namespace TowerDefense
 {
-    class Map
+    public class Map
     {
-        public Vector2 mapSize { get; set; }
-        public List<Vector2> vertices { get; set; }
+        public Vector2 MapSize { get; set; }
+        public List<Vector2> Vertices { get; set; }
         public Vector2 WalkInFrom { get; set; }
         public Vector2 WalkOutFrom { get; set; }
-        public List<Vector2> path { get; set; }
+        //public int SquareSize { get; set; }
+        public Dictionary<Grid.TileKinds, String> TileTextures { get; set; }
+        public List<Vector2> Path { get; set; }
+        
 
 
-        public Map()
-        {
-            mapSize = Vector2.Zero;
-            path = new List<Vector2>();
-        }
+        public Map() { }
+
+
 
         public void MapFileFormatTest(string filePath)
         {
-            Map testMap = new Map();
-            testMap.mapSize = new Vector2(20, 20);
-            testMap.vertices = new List<Vector2>()
+            Map testMap = new Map
             {
-                { new Vector2(0, 2)},
-                { new Vector2(2, 5)},
-                { new Vector2(5, 7)}
+                MapSize = new Vector2(20, 20),
+                Vertices = new List<Vector2>()
+                {
+                    { new Vector2(0, 2) },
+                    { new Vector2(2, 5) },
+                    { new Vector2(5, 7) }
+                },
+                TileTextures = new Dictionary<Grid.TileKinds, string>()
+                {
+                    [Grid.TileKinds.None] = "Tiles\\land",
+                    [Grid.TileKinds.Horizontal] = "Tiles\\horizontalTest340",
+                    [Grid.TileKinds.Vertical] = "Tiles\\vertical340"
+                }
             };
             Vector2 test = new Vector2(10, 10);
-            
+
             //JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions();
 
             //var jsonConverter = jsonSerializerOptions.GetConverter(typeof(Vector2));
-            
+
             var options = new JsonSerializerOptions { IncludeFields = true, WriteIndented = true };
             var jsonText = JsonSerializer.Serialize(testMap, options); // Formatting.Indented;
             File.WriteAllText(filePath, jsonText);
             var fileContents = File.ReadAllText(filePath);
             var readingBackTest = JsonSerializer.Deserialize<Map>(fileContents, options);
         }
+
+
+
+
         /// <summary>
         /// Map file format:
         /// width
@@ -60,102 +73,73 @@ namespace TowerDefense
         ///start point
         ///as many vertexies as there will be, the last one will be the end point
         /// </summary>
-        public void ImportMap(string mapFilePath)
+        public static Map ImportMap(string mapFilePath)
         {
-            //string[] mapLines = File.ReadAllLines("mapFilePath");
-
-            //var test1 = JsonConvert.SerializeObject(Map);
             string fileContents = File.ReadAllText(mapFilePath);
             var options = new JsonSerializerOptions { IncludeFields = true, WriteIndented = true };
             var map = JsonSerializer.Deserialize<Map>(fileContents, options);
 
-            mapSize = map.mapSize;
-            vertices = map.vertices;
-            WalkInFrom = map.WalkInFrom;
-            WalkOutFrom = map.WalkOutFrom;
-
-            //string[] mapLines = File.ReadAllLines(mapFilePath);
-            //string regexPattern = @"^(?<x>\d+)[:, ]{1,2}(?<y>\d+)$";
-            //var regex = new Regex(regexPattern);
-            //List<Vector2> data = new List<Vector2>();
-            //foreach (var line in mapLines)
-            //{
-            //    foreach (Match m in regex.Matches(line))
-            //    {
-            //        data.Add(new Vector2(int.Parse(m.Groups["x"].Value), int.Parse(m.Groups["y"].Value)));
-            //    }
-            //}
-
-            //mapSize = data[0];
-            //for (int i = 1; i < data.Count-1; i++)
-            //{
-            //    var line = pathConnectionHelper(data[i], data[i+1]);
-            //    for (int k = 0; k < line.Count; k++)
-            //    {
-            //        path.Add(line[k]);
-            //    }
-            //}
-            //path.Add(data[data.Count - 1]);
-
-            //var test2 = JsonConvert.DeserializeObject<List<Vector2>>(test1);
-            path.Add(WalkInFrom);
-            for (int i = 0; i < vertices.Count - 1; i++)
+            map.Path.Add(map.WalkInFrom);
+            for (int i = 0; i < map.Vertices.Count - 1; i++)
             {
 
-                var line = pathConnectionHelper(vertices[i], vertices[i + 1]);
+                var line = pathConnectionHelper(map.Vertices[i], map.Vertices[i + 1]);
                 for (int k = 0; k < line.Count; k++)
                 {
-                    path.Add(line[k]);
+                    map.Path.Add(line[k]);
                 }
             }
-            path.Add(vertices[vertices.Count - 1]);
-            path.Add(WalkOutFrom);
-        }
+            map.Path.Add(map.Vertices[map.Vertices.Count - 1]);
+            map.Path.Add(map.WalkOutFrom);
 
-        (int X, int Y) pathDirectionHelper(Vector2 start, Vector2 end)
-        {
-            //mod itself+1
-            int x = 0;
-            //x %= x + 1;//this doent work if going right to left
-            //x -= x-1;
-            int y = 0;
+            return map;
 
-            if (start.X - end.X < 0)
+
+            static (int X, int Y) pathDirectionHelper(Vector2 start, Vector2 end)
             {
-                x = 1;
-            }
-            else if (start.X - end.X > 0)
-            {
-                x = -1;
-            }
-            if (start.Y - end.Y < 0)
-            {
-                y = 1;
-            }
-            else if (start.Y - end.Y > 0)
-            {
-                y = -1;
+                //mod itself+1
+                int x = 0;
+                //x %= x + 1;//this doent work if going right to left
+                //x -= x-1;
+                int y = 0;
+
+                if (start.X - end.X < 0)
+                {
+                    x = 1;
+                }
+                else if (start.X - end.X > 0)
+                {
+                    x = -1;
+                }
+                if (start.Y - end.Y < 0)
+                {
+                    y = 1;
+                }
+                else if (start.Y - end.Y > 0)
+                {
+                    y = -1;
+                }
+
+                return (x, y);
             }
 
-            return (x, y);
-        }
-
-        List<Vector2> pathConnectionHelper(Vector2 startPoint, Vector2 endPoint)
-        {
-            List<Vector2> linePath = new List<Vector2>();
-            var lineDirection = pathDirectionHelper(startPoint, endPoint);
-            var currentPosition = startPoint;
-            while (currentPosition.Y != endPoint.Y)
+            static List<Vector2> pathConnectionHelper(Vector2 startPoint, Vector2 endPoint)
             {
-                linePath.Add(currentPosition);
-                currentPosition.Y += lineDirection.Y;
+                List<Vector2> linePath = new List<Vector2>();
+                var lineDirection = pathDirectionHelper(startPoint, endPoint);
+                var currentPosition = startPoint;
+                while (currentPosition.Y != endPoint.Y)
+                {
+                    linePath.Add(currentPosition);
+                    currentPosition.Y += lineDirection.Y;
+                }
+                while (currentPosition.X != endPoint.X)
+                {
+                    linePath.Add(currentPosition);
+                    currentPosition.X += lineDirection.X;
+                }
+                return linePath;
             }
-            while (currentPosition.X != endPoint.X)
-            {
-                linePath.Add(currentPosition);
-                currentPosition.X += lineDirection.X;
-            }
-            return linePath;
         }
     }
 }

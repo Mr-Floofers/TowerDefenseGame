@@ -1,9 +1,9 @@
 {
-  "mapSize": {
+  "MapSize": {
     "X": 20,
     "Y": 20
   },
-  "vertices": [
+  "Vertices": [
     {
       "X": 0,
       "Y": 2
@@ -17,5 +17,18 @@
       "Y": 7
     }
   ],
-  "path": []
+  "WalkInFrom": {
+    "X": 0,
+    "Y": 0
+  },
+  "WalkOutFrom": {
+    "X": 0,
+    "Y": 0
+  },
+  "TileTextures": {
+    "None": "Tiles\\land",
+    "Horizontal": "Tiles\\horizontalTest340",
+    "Vertical": "Tiles\\vertical340"
+  },
+  "Path": null
 }

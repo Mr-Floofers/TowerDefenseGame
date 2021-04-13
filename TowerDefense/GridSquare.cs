@@ -8,29 +8,54 @@ using System.Threading.Tasks;
 
 namespace TowerDefense
 {
-    class GridSquare
+    public class GridSquare
     {
-        Vector2 GridPosition { get; set; }
+        public Vector2 GridPosition { get; set; }
         bool IsPath => TileKind != Grid.TileKinds.None;
         public Grid.TileKinds TileKind { get; internal set; }
+        int squareSize;
 
-        public GridSquare(Vector2 gridPosition, Grid.TileKinds tileKind)
+        //put in sprite
+        Vector2 onScreenPosition => TowerDefense.Grid[this];
+        Vector2 origin;
+        Texture2D texture; 
+        //square/pic
+        float scale;
+
+
+        public GridSquare(Vector2 gridPosition, int squareSize, Grid.TileKinds tileKind = Grid.TileKinds.None)
         {
             GridPosition = gridPosition;
+            this.squareSize = squareSize;
             TileKind = tileKind;
+
+            texture = Grid.TileTextures[TileKind];
+            scale = (float)squareSize / texture.Height;
+            // scale /= 2;
+            //onScreenPosition = new Vector2(GridPosition.X * squareSize, GridPosition.Y * squareSize);
+
+            
+
+            origin = Vector2.Zero; // new Vector2(squareSize, squareSize) / 2f;  // Center origin, RELATIVE TO THE TEXTURE!
         }
 
-        public void Draw(SpriteBatch spriteBatch, int squareSize, Texture2D pixel)
+        public void Draw(SpriteBatch spriteBatch)
         {
-            Vector2 position = new Vector2(GridPosition.X * squareSize, GridPosition.Y * squareSize);
-            Rectangle rectangle = new Rectangle((int)position.X, (int)position.Y, (int)(squareSize * (((int)TileKind & 4) == 4 ? 1.5 : 1))/*written by peter*/, (int)(squareSize * (((int)TileKind & 4) == 4 ? 1.5 : 1)));
+            //* (((int)TileKind & 4) == 4 ? 1.5 : 1))/*written by peter*/, (int)(squareSize * (((int)TileKind & 4) == 4 ? 1.5 : 1)));
             //Rectangle positionRectangle = new Rectangle();
             //Color color = Color.Black;
             //if(IsPath)
             //{
             //    color = Color.White;
             //}
-            spriteBatch.Draw(Grid.TileTextures[TileKind], rectangle, null, Color.White);
+            //spriteBatch.Draw(Grid.TileTextures[Grid.TileKinds.None], destinationRect, null, Color.White);
+            
+            spriteBatch.Draw(Grid.TileTextures[Grid.TileKinds.None], onScreenPosition, null, Color.White, 0f, origin, scale, SpriteEffects.None, 0f);
+            if(TileKind != Grid.TileKinds.None)
+            {
+                
+                spriteBatch.Draw(texture, onScreenPosition, sourceRectangle: null, Color.White, rotation: 0f, origin, scale, SpriteEffects.None, layerDepth: 0f);
+            }
         }
     }
 }

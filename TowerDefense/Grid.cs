@@ -8,17 +8,42 @@ using System.Threading.Tasks;
 
 namespace TowerDefense
 {
-    partial class Grid
+    public partial class Grid
     {
         GridSquare[,] gridSquares;
-        public Vector2 GridSize { get; set; }
-        Map map;
+        
+        public Map Map { get; }
+        
         Dictionary<Vector4, TileKinds> directions;
 
-        public Grid(Map map, Dictionary<TileKinds, Texture2D> tileTextures)
+        public Vector2 GridSize
+            => Map.MapSize;
+
+        public GridSquare this[int x, int y]
+            => gridSquares[x, y];
+
+
+        public Vector2 this[GridSquare gridSquare]
         {
-            this.map = map;
-            GridSize = map.mapSize;
+            get
+            {
+                return new Vector2(gridSquare.GridPosition.X * SquareSize, gridSquare.GridPosition.Y * SquareSize);
+            }
+        }
+
+        public GridSquare this[Vector2 screenPosition]
+        {
+            get
+            {
+                // TODO: Calculate grid position
+
+                return this[(int)screenPosition.X/SquareSize, (int)screenPosition.Y/SquareSize];
+            }
+        }
+
+        public Grid(Map map, Dictionary<TileKinds, Texture2D> tileTextures, int squareSize)
+        {
+            this.Map = map;
             gridSquares = new GridSquare[(int)GridSize.X, (int)GridSize.Y];
             TileTextures = tileTextures;
             directions = new Dictionary<Vector4, TileKinds>
@@ -36,53 +61,75 @@ namespace TowerDefense
                 [new Vector4(0, 1, 0, -1)] = TileKinds.Vertical,
                 [new Vector4(0, -1, 0, 1)] = TileKinds.Vertical
             };
+            SquareSize = squareSize;
+
+            var lerpFuncs = new Dictionary<TileKinds, Func<Vector2, Vector2, float, Vector2>>()
+            {
+                [TileKinds.Horizontal] = Vector2.Lerp,
+                [TileKinds.Vertical] = Vector2.Lerp
+            };
         }
+
+        public int SquareSize{get; set;}
 
         public void SetGridSquares()
         {
+            // Initialize grid
             for (int x = 0; x < GridSize.X; x++)
             {
                 for (int y = 0; y < GridSize.Y; y++)
                 {
-                    TileKinds tilekind = TileKinds.None;
-                    if (map.path.Contains(new Vector2(x, y)))
-                    {
-                        tilekind = PathSquareDirection(map.path.IndexOf(new Vector2(x, y)));
-                    }
-                    gridSquares[x, y] = new GridSquare(new Vector2(x, y), tilekind);
+                    gridSquares[x, y] = new GridSquare(new Vector2(x, y), SquareSize);
                 }
+            }
+
+            // Set path into grid
+            for (int i = 1; i < Map.Path.Count - 1; i++)
+            {
+                TileKinds tileKind = PathSquareDirection(i);
+                gridSquares[(int)Map.Path[i].X, (int)Map.Path[i].Y] = new GridSquare(Map.Path[i], SquareSize, tileKind);
             }
         }
 
         TileKinds PathSquareDirection(int index)
         {
-            Vector2 pathSquarePosition = map.path[index];
-            Vector2 nextPathSquarePosition;
-            Vector2 prePathSquarePosition;
-            if (index == 0)
-            {
-                return TileKinds.None;
-                //prePathSquarePosition = map.WalkInFrom;
-            }
-            else
-            {
-                //return TileKinds.None;
-                prePathSquarePosition = map.path[index - 1];
-            }
-            if (index == map.path.Count - 1)
-            {
-                return TileKinds.None;
-                //nextPathSquarePosition = map.WalkOutFrom;
-            }
-            else
-            {
-                nextPathSquarePosition = map.path[index + 1];
-            }
+            Vector2 pathSquarePosition = Map.Path[index];
+            Vector2 nextPathSquarePosition = Map.Path[index + 1];
+            Vector2 prePathSquarePosition = Map.Path[index - 1];
+            
+            // Offset by current tile
             nextPathSquarePosition -= pathSquarePosition;
             prePathSquarePosition -= pathSquarePosition;
 
-            Vector4 final = new Vector4(nextPathSquarePosition.X, nextPathSquarePosition.Y, prePathSquarePosition.X, prePathSquarePosition.Y);
-            return directions[final];
+
+            Vector4 directionIndex = new Vector4(nextPathSquarePosition.X, nextPathSquarePosition.Y, 
+                                                 prePathSquarePosition.X, prePathSquarePosition.Y);
+            var direction = directions[directionIndex];
+
+            //if(direction == TileKinds.Vertical)
+            //{
+            //    if(gridSquares[(int)prePathSquarePosition.X, (int)prePathSquarePosition.Y].TileKind == TileKinds.TurnFromEntryRightToLowerLeft)
+            //    {
+            //        direction = TileKinds.VerticalDrawLeft;
+            //    }
+            //    else
+            //    {
+            //        direction = TileKinds.VerticalDrawRight;
+            //    }
+
+            //}
+            //else if(direction == TileKinds.Horizontal)
+            //{
+            //    if (gridSquares[(int)prePathSquarePosition.X, (int)prePathSquarePosition.Y].TileKind == TileKinds.TurnFromEntryRightToLowerLeft)
+            //    {
+            //        direction = TileKinds.HorizontalDrawHigh;
+            //    }
+            //    else
+            //    {
+            //        direction = TileKinds.HorizontalDrawLow;
+            //    }
+            //}
+            return direction;
         }
 
         //TileKinds PathSquareDirection(int index)
@@ -207,13 +254,13 @@ namespace TowerDefense
         //    return TileKinds.None;
         //}
 
-        public void Draw(SpriteBatch spriteBatch, Texture2D pixel, int squareSize)
+        public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
             for (int x = 0; x < GridSize.X; x++)
             {
                 for (int y = 0; y < GridSize.Y; y++)
                 {
-                    gridSquares[x, y].Draw(spriteBatch, squareSize, pixel);
+                    gridSquares[x, y].Draw(spriteBatch);
                 }
             }
         }

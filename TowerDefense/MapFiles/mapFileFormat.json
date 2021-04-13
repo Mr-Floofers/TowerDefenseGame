@@ -1,9 +1,9 @@
 {
-  "mapSize": {
-    "X": 10,
-    "Y": 10
+  "MapSize": {
+    "X": 7,
+    "Y": 7
   },
-  "vertices": [
+  "Vertices": [
     {
       "X": 2,
       "Y": 0
@@ -21,20 +21,8 @@
       "Y": 2
     },
     {
-      "X": 8,
+      "X": 6,
       "Y": 2
-    },
-    {
-      "X": 8,
-      "Y": 8
-    },
-    {
-      "X": 2,
-      "Y": 8
-    },
-    {
-      "X": 2,
-      "Y": 9
     }
   ],
   "WalkInFrom": {
@@ -42,8 +30,17 @@
     "Y": -1
   },
   "WalkOutFrom": {
-    "X": 2,
-    "Y": 10
+    "X": 7,
+    "Y": 2
   },
-  "path": []
+  "TileTextures": {
+    "None": "Tiles\\land",
+    "Horizontal": "Tiles\\horizontalTest340",
+    "Vertical": "Tiles\\vertical340",
+    "TurnFromEntryAboveToLowerRight": "Tiles\\road_3_centered",
+    "TurnFromEntryBellowToUpperLeft": "Tiles\\road_2_centered",
+    "TurnFromEntryLeftToUpperRight": "Tiles\\road_4_centered",
+    "TurnFromEntryRightToLowerLeft": "Tiles\\road_1_centered"
+  },
+  "Path": []
 }
