@@ -38,7 +38,7 @@
     "Horizontal": "Tiles\\horizontalTest340",
     "Vertical": "Tiles\\vertical340",
     "TurnFromEntryAboveToLowerRight": "Tiles\\road_3_centered",
-    "TurnFromEntryBellowToUpperLeft": "Tiles\\road_2_centered",
+    "TurnFromEntryBelowToUpperLeft": "Tiles\\road_2_centered",
     "TurnFromEntryLeftToUpperRight": "Tiles\\road_4_centered",
     "TurnFromEntryRightToLowerLeft": "Tiles\\road_1_centered"
   },

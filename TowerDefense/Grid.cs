@@ -11,9 +11,9 @@ namespace TowerDefense
     public partial class Grid
     {
         GridSquare[,] gridSquares;
-        
+
         public Map Map { get; }
-        
+
         Dictionary<Vector4, TileKinds> directions;
 
         public Vector2 GridSize
@@ -35,9 +35,30 @@ namespace TowerDefense
         {
             get
             {
-                // TODO: Calculate grid position
+                //screenPosition -= new Vector2(TowerDefense.Grid.SquareSize / 2);
 
-                return this[(int)screenPosition.X/SquareSize, (int)screenPosition.Y/SquareSize];
+                // Return null if off-grid position
+                if (screenPosition.X < 0 || (int)screenPosition.X >= (Map.MapSize.X) * SquareSize || screenPosition.Y < 0 || (int)screenPosition.Y >= (Map.MapSize.Y) * SquareSize)
+                {
+                    return null;
+                }
+                //if(screenPosition.X > 0)
+                //{
+                //    screenPosition.X--;
+                //}
+                //if(screenPosition.Y > 0)
+                //{
+                //    screenPosition.Y--;
+                //}
+                return this[(int)screenPosition.X / SquareSize, (int)screenPosition.Y / SquareSize];
+            }
+        }
+
+        public Vector2 this[int pathIndex]
+        {
+            get
+            {
+                return new Vector2(Map.Path[pathIndex].X * SquareSize, Map.Path[pathIndex].Y * SquareSize);
             }
         }
 
@@ -54,8 +75,8 @@ namespace TowerDefense
                 [new Vector4(-1, 0, 0, -1)] = TileKinds.TurnFromEntryLeftToUpperRight,
                 [new Vector4(0, 1, 1, 0)] = TileKinds.TurnFromEntryRightToLowerLeft,
                 [new Vector4(1, 0, 0, 1)] = TileKinds.TurnFromEntryRightToLowerLeft,
-                [new Vector4(0, 1, -1, 0)] = TileKinds.TurnFromEntryBellowToUpperLeft,
-                [new Vector4(-1, 0, 0, 1)] = TileKinds.TurnFromEntryBellowToUpperLeft,
+                [new Vector4(0, 1, -1, 0)] = TileKinds.TurnFromEntryBelowToUpperLeft,
+                [new Vector4(-1, 0, 0, 1)] = TileKinds.TurnFromEntryBelowToUpperLeft,
                 [new Vector4(-1, 0, 1, 0)] = TileKinds.Horizontal,
                 [new Vector4(1, 0, -1, 0)] = TileKinds.Horizontal,
                 [new Vector4(0, 1, 0, -1)] = TileKinds.Vertical,
@@ -70,7 +91,7 @@ namespace TowerDefense
             };
         }
 
-        public int SquareSize{get; set;}
+        public int SquareSize { get; set; }
 
         public void SetGridSquares()
         {
@@ -79,7 +100,7 @@ namespace TowerDefense
             {
                 for (int y = 0; y < GridSize.Y; y++)
                 {
-                    gridSquares[x, y] = new GridSquare(new Vector2(x, y), SquareSize);
+                    gridSquares[x, y] = new GridSquare(new Vector2(x, y));
                 }
             }
 
@@ -87,7 +108,7 @@ namespace TowerDefense
             for (int i = 1; i < Map.Path.Count - 1; i++)
             {
                 TileKinds tileKind = PathSquareDirection(i);
-                gridSquares[(int)Map.Path[i].X, (int)Map.Path[i].Y] = new GridSquare(Map.Path[i], SquareSize, tileKind);
+                gridSquares[(int)Map.Path[i].X, (int)Map.Path[i].Y] = new GridSquare(Map.Path[i], tileKind);
             }
         }
 
@@ -96,13 +117,13 @@ namespace TowerDefense
             Vector2 pathSquarePosition = Map.Path[index];
             Vector2 nextPathSquarePosition = Map.Path[index + 1];
             Vector2 prePathSquarePosition = Map.Path[index - 1];
-            
+
             // Offset by current tile
             nextPathSquarePosition -= pathSquarePosition;
             prePathSquarePosition -= pathSquarePosition;
 
 
-            Vector4 directionIndex = new Vector4(nextPathSquarePosition.X, nextPathSquarePosition.Y, 
+            Vector4 directionIndex = new Vector4(nextPathSquarePosition.X, nextPathSquarePosition.Y,
                                                  prePathSquarePosition.X, prePathSquarePosition.Y);
             var direction = directions[directionIndex];
 
@@ -254,7 +275,7 @@ namespace TowerDefense
         //    return TileKinds.None;
         //}
 
-        public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
+        public void Draw(SpriteBatch spriteBatch)
         {
             for (int x = 0; x < GridSize.X; x++)
             {

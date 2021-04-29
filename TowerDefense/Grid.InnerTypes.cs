@@ -19,7 +19,7 @@ namespace TowerDefense
             VerticalDrawLeft,
             VerticalDrawRight,
             TurnFromEntryLeftToUpperRight,
-            TurnFromEntryBellowToUpperLeft,
+            TurnFromEntryBelowToUpperLeft,
             TurnFromEntryRightToLowerLeft,
             TurnFromEntryAboveToLowerRight
         }

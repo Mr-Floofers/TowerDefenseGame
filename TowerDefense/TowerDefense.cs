@@ -12,7 +12,7 @@ namespace TowerDefense
     /// </summary>
     public class TowerDefense : GridBasedGame
     {
-        Texture2D pixel;
+        
 
         //TimeSpan timeToKillSomeRAM = TimeSpan.Zero;
         //TimeSpan whenToKillSomeRam = TimeSpan.FromMilliseconds(100);
@@ -21,11 +21,14 @@ namespace TowerDefense
 
         // Debug
         private TimeSpan moveTimer = TimeSpan.Zero;
-        private TimeSpan moveTimerTarget = TimeSpan.FromMilliseconds(500);
-        private int debugMapTraverserPositionIndex = 0;
+        private TimeSpan moveTimerTarget = TimeSpan.FromMilliseconds(10);
+        private float angle = 0;
         int mouseX;
         int mouseY;
         Vector2 testGridPosition;
+        Unit testUnit;
+
+        public int UnitOverCount { get; set; }
 
         public TowerDefense()
             : base(@"MapFiles\mapFileFormat.json", squareSize: 140) { }
@@ -50,9 +53,14 @@ namespace TowerDefense
         {
             // Create a new SpriteBatch, which can be used to draw textures.
 
-            pixel = new Texture2D(GraphicsDevice, 1, 1);
-            pixel.SetData(new[] { Color.White });
-           
+            Pixel = new Texture2D(GraphicsDevice, 1, 1);
+            Pixel.SetData(new[] { Color.White });
+
+            UnitOverCount = 0;
+
+            testUnit = new Unit(100, Pixel);
+
+
             //tileTextures = new Dictionary<Grid.TileKinds, Texture2D>
             //{
 
@@ -65,7 +73,7 @@ namespace TowerDefense
             //    [Grid.TileKinds.TurnFromEntryRightToLowerLeft] = Content.Load<Texture2D>(@"Tiles\road_1_centered")
             //};
 
-           
+
             //Grid.Map.MapFileFormatTest(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\vector2JsonFormat.json");
 
             // TODO: use this.Content to load your game content here
@@ -99,22 +107,27 @@ namespace TowerDefense
             //    timeToKillSomeRAM = TimeSpan.Zero;
             //}
 
-            if (mouseX != Mouse.GetState().X || mouseY != Mouse.GetState().Y)
-            {
-                Debug.WriteLine($"{mouseX}, {mouseY}");
-                Debug.WriteLine($"{mouseX/Grid.SquareSize}, {mouseY/Grid.SquareSize}");
-                testGridPosition = new Vector2(mouseX / Grid.SquareSize, mouseY / Grid.SquareSize);
-            }
-            mouseX = Mouse.GetState().X;
-            mouseY = Mouse.GetState().Y;
+            //if (mouseX != Mouse.GetState().X || mouseY != Mouse.GetState().Y)
+            //{
+            //    Debug.WriteLine($"{mouseX}, {mouseY}");
+            //    Debug.WriteLine($"{mouseX/Grid.SquareSize}, {mouseY/Grid.SquareSize}");
+            //    testGridPosition = new Vector2(mouseX / Grid.SquareSize, mouseY / Grid.SquareSize);
+            //}
+            //mouseX = Mouse.GetState().X;
+            //mouseY = Mouse.GetState().Y;
 
             moveTimer += gameTime.ElapsedGameTime;
             if (moveTimer < moveTimerTarget) return;
 
-            if (debugMapTraverserPositionIndex == Grid.Map.Path.Count - 1) return;
+            //if (debugMapTraverserPositionIndex == Grid.Map.Path.Count - 1) return;
 
             moveTimer = TimeSpan.Zero;
-            debugMapTraverserPositionIndex++;
+            //debugMapTraverserPositionIndex++;
+            angle++;
+
+            testUnit.Update(gameTime);
+
+            Debug.WriteLine(UnitOverCount);
 
             //testMap.ImportMap(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\map1.txt");
             //testMap.MapFileFormatTest(@"C:\Users\denni\source\repos\TowerDefense\TowerDefense\MapFiles\mapFileFormat.txt");
@@ -135,13 +148,18 @@ namespace TowerDefense
 
             // TODO: Add your drawing code here
             spriteBatch.Begin();
-            Grid.Draw(spriteBatch, pixel);
+            Grid.Draw(spriteBatch);
 
-            spriteBatch.Draw(pixel, new Rectangle((testGridPosition*Grid.SquareSize).ToPoint()/*(Grid.Map.Path[debugMapTraverserPositionIndex] * Grid.SquareSize).ToPoint()*/, new Point(Grid.SquareSize, Grid.SquareSize)), Color.Red);
-
+            spriteBatch.Draw(Pixel, new Rectangle((CirclePoint(50, angle) + new Vector2(100, 100)).ToPoint()/*(Grid.Map.Path[debugMapTraverserPositionIndex] * Grid.SquareSize).ToPoint()*/, new Point(Grid.SquareSize/4, Grid.SquareSize/4)), Color.Red);
+            testUnit.Draw(spriteBatch);
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        Vector2 CirclePoint(float radius, float angle)
+        {
+            return new Vector2(radius * (float)Math.Cos(angle * Math.PI / 180), radius * (float)Math.Sin(angle * Math.PI / 180));
         }
     }
 }

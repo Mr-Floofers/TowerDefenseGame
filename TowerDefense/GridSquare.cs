@@ -13,7 +13,6 @@ namespace TowerDefense
         public Vector2 GridPosition { get; set; }
         bool IsPath => TileKind != Grid.TileKinds.None;
         public Grid.TileKinds TileKind { get; internal set; }
-        int squareSize;
 
         //put in sprite
         Vector2 onScreenPosition => TowerDefense.Grid[this];
@@ -22,19 +21,23 @@ namespace TowerDefense
         //square/pic
         float scale;
 
+        //Texture2D pixel;
 
-        public GridSquare(Vector2 gridPosition, int squareSize, Grid.TileKinds tileKind = Grid.TileKinds.None)
+
+        public GridSquare(Vector2 gridPosition, Grid.TileKinds tileKind = Grid.TileKinds.None)
         {
             GridPosition = gridPosition;
-            this.squareSize = squareSize;
+
             TileKind = tileKind;
 
             texture = Grid.TileTextures[TileKind];
-            scale = (float)squareSize / texture.Height;
+            scale = (float)TowerDefense.Grid.SquareSize / texture.Height;
             // scale /= 2;
             //onScreenPosition = new Vector2(GridPosition.X * squareSize, GridPosition.Y * squareSize);
 
-            
+            //pixel = new Texture2D(GraphicsDevice, 1, 1);
+            //pixel.SetData(new[] { Color.White });
+
 
             origin = Vector2.Zero; // new Vector2(squareSize, squareSize) / 2f;  // Center origin, RELATIVE TO THE TEXTURE!
         }
@@ -49,13 +52,14 @@ namespace TowerDefense
             //    color = Color.White;
             //}
             //spriteBatch.Draw(Grid.TileTextures[Grid.TileKinds.None], destinationRect, null, Color.White);
-            
+
             spriteBatch.Draw(Grid.TileTextures[Grid.TileKinds.None], onScreenPosition, null, Color.White, 0f, origin, scale, SpriteEffects.None, 0f);
-            if(TileKind != Grid.TileKinds.None)
+            if (TileKind != Grid.TileKinds.None)
             {
-                
                 spriteBatch.Draw(texture, onScreenPosition, sourceRectangle: null, Color.White, rotation: 0f, origin, scale, SpriteEffects.None, layerDepth: 0f);
             }
+            spriteBatch.Draw(TowerDefense.DebugGridSquare, onScreenPosition, Color.White);
+            //spriteBatch.Draw(TowerDefense.Pixel, new Rectangle((int)onScreenPosition.X, (int)onScreenPosition.Y, TowerDefense.Grid.SquareSize, TowerDefense.Grid.SquareSize), Color.Red * 0.25f);
         }
     }
 }
