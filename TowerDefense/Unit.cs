@@ -10,9 +10,24 @@ using Microsoft.Xna.Framework.Input;
 
 namespace TowerDefense
 {
-    class Unit
+    class Unit : Sprite
     {
-        Vector2 onScreenPosition;
+        public enum Direction
+        {
+            Up,
+            Down,
+            Left,
+            Right
+        };
+
+        public enum UnitStates
+        {
+            ReachedTheEnd,
+            Dead,
+            Alive
+        };
+
+        //Vector2 onScreenPosition;
         int pathIndex;
         TimeSpan moveTimer;
 
@@ -24,37 +39,69 @@ namespace TowerDefense
 
         Vector2 gridPosition => TowerDefense.Grid[onScreenPosition].GridPosition; //make it so that this is calculated from onScreenPosition
         float movementSpeed; // pixels per second
-        Texture2D texture; //?
+        //Texture2D texture; //?
 
+
+        Direction currentDirection;
+        public UnitStates UnitState { get; private set; }
 
         Vector2 debugMousePosition;
         Vector2 debugCenter;
 
         public Unit(float speed, Texture2D texture)
+            : base(texture)
         {
             movementSpeed = speed;
-            this.texture = texture;
+            //this.texture = texture;
             moveTimer = TimeSpan.Zero;
             pathIndex = 0;
             onScreenPosition = TowerDefense.Grid[pathIndex] + new Vector2(TowerDefense.Grid.SquareSize / 2);
             debugMousePosition = Vector2.Zero;
             newAngle = true;
             debugCenter = Vector2.Zero;
+
+
+            origin = Vector2.One / 2f;
+            scale = Vector2.One * 20;
+            layerDepth = 0f;
+            color = Color.Red;
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime)//true = done
         {
             Vector2 targetOnScreenPosition = TowerDefense.Grid[pathIndex + 1] + new Vector2(TowerDefense.Grid.SquareSize / 2);//TowerDefense.Grid.Map.Path[pathIndex+1]; // TODO: Get next target
             //var thing = TowerDefense.Grid[targetOnScreenPosition];
             Vector2 gridSquarePosotionToBaseMovementOn = TowerDefense.Grid[pathIndex];// + new Vector2(TowerDefense.Grid.SquareSize / 2);
             GridSquare gridSquareToBaseMovementOn = TowerDefense.Grid[onScreenPosition];//onScreenPosition
+
+            if (currentDirection == Direction.Down)
+            {
+                color = Color.Blue;
+            }
+            if (currentDirection == Direction.Right)
+            {
+                color = Color.Red;
+            }
+            if (currentDirection == Direction.Left)
+            {
+                color = Color.OliveDrab;
+            }
+            if (currentDirection == Direction.Up)
+            {
+                color = Color.Black;
+            }
+
             if (gridSquareToBaseMovementOn == null && pathIndex < 1)
             {
                 gridSquareToBaseMovementOn = TowerDefense.Grid[targetOnScreenPosition];
+                currentDirection = directionHelper2Vectors(onScreenPosition, targetOnScreenPosition);
+                //var directionVector = gridSquareToBaseMovementOn.onScreenPosition - 
             }
-            else
+            if (gridSquareToBaseMovementOn == null)
             {
-                //TowerDefense.U
+                //throw new Exception("u suck");
+                UnitState = UnitStates.ReachedTheEnd;
+                return;
             }
 
             //Debug.WriteLine(pathIndex);
@@ -75,133 +122,278 @@ namespace TowerDefense
                         var moveVector = moveDirection * moveAmount;
                         onScreenPosition += moveVector;
                         Vector2 test = onScreenPosition - targetOnScreenPosition;
-                        debugCenter = targetOnScreenPosition;
+                        //debugCenter = targetOnScreenPosition;
                         if (Math.Abs(test.X) < 1f && Math.Abs(test.Y) < 1f && pathIndex + 2 < TowerDefense.Grid.Map.Path.Count)
                         {
                             pathIndex++;
                         }
+
+                        currentDirection = directionHelper1Vector(moveDirection);
                     }
                     break;
 
                 case Grid.TileKinds.TurnFromEntryLeftToUpperRight:
                     {
-                        if (newAngle)
+                        if (currentDirection == Direction.Right)
                         {
-                            currentAngle = 90;
-                            newAngle = false;
+                            if (newAngle)
+                            {
+                                currentAngle = 90;
+                                newAngle = false;
+                            }
+                            float distanceToTravel = .5f * (float)Math.PI * TowerDefense.Grid.SquareSize / 2;
+                            float thyme = distanceToTravel / movementSpeed;
+                            float angularVelocity = 90 / thyme;
+
+                            float targetAngle = 0;
+                            Vector2 centerOfRotation = new Vector2(gridPosition.X, gridPosition.Y) * TowerDefense.Grid.SquareSize;
+
+                            float radius = TowerDefense.Grid.SquareSize / 2;
+
+                            debugCenter = centerOfRotation;
+
+                            targetOnScreenPosition = RotateWalk(radius, currentAngle - 1, centerOfRotation);
+
+                            onScreenPosition = targetOnScreenPosition;
+
+
+                            currentAngle -= angularVelocity * (float)(gameTime.ElapsedGameTime.TotalSeconds);
+
+                            if (currentAngle <= targetAngle)
+                            {
+                                pathIndex++;
+
+                                onScreenPosition.Y = (float)Math.Floor(onScreenPosition.Y) - 1;
+                                //onScreenPosition.X = (float)Math.Ceiling(onScreenPosition.X);
+                                newAngle = true;
+                                currentDirection = Direction.Up;
+                            }
                         }
-                        float distanceToTravel = .5f * (float)Math.PI * TowerDefense.Grid.SquareSize / 2;
-                        float thyme = distanceToTravel / movementSpeed;
-                        float angularVelocity = 90 / thyme;
-
-                        float targetAngle = 0;
-                        Vector2 centerOfRotation = new Vector2(gridPosition.X, gridPosition.Y) * TowerDefense.Grid.SquareSize;
-
-                        float radius = TowerDefense.Grid.SquareSize / 2;
-
-                        debugCenter = centerOfRotation;
-
-                        targetOnScreenPosition = RotateWalk(radius, currentAngle - 1, centerOfRotation);
-
-                        onScreenPosition = targetOnScreenPosition;
-
-                        
-                        currentAngle -= angularVelocity * (float)(gameTime.ElapsedGameTime.TotalSeconds);
-                        
-                        if (currentAngle <= targetAngle)
+                        else if(currentDirection == Direction.Down)
                         {
-                            pathIndex++;
+                            if (newAngle)
+                            {
+                                currentAngle = 0;
+                                newAngle = false;
+                            }
 
-                            onScreenPosition.Y = (float)Math.Floor(onScreenPosition.Y)-1;
-                            //onScreenPosition.X = (float)Math.Ceiling(onScreenPosition.X);
-                            newAngle = true;
+                            float targetAngle = 90;
+                            Vector2 centerOfRotation = new Vector2(gridPosition.X, gridPosition.Y) * TowerDefense.Grid.SquareSize;
+
+                            var posAndAngle = CurveMove(currentAngle, targetAngle, movementSpeed, centerOfRotation, gameTime);
+
+                            debugCenter = centerOfRotation;
+
+                            onScreenPosition = posAndAngle.Position;
+                            currentAngle = posAndAngle.Angle;
+
+                            if (currentAngle >= targetAngle)
+                            {
+                                pathIndex++;
+
+                                // Round up, because floats
+                                onScreenPosition.Y = (float)Math.Ceiling(onScreenPosition.Y);
+                                onScreenPosition.X = (float)Math.Floor(onScreenPosition.X)-1;
+
+                                newAngle = true;
+                                currentDirection = Direction.Left;
+                            }
                         }
                     }
                     break;
                 case Grid.TileKinds.TurnFromEntryBelowToUpperLeft:
+                    {
+                        if (currentDirection == Direction.Right)
+                        {
+                            if (newAngle)
+                            {
+                                currentAngle = 270;
+                                newAngle = false;
+                            }
+
+                            float targetAngle = 360;
+                            Vector2 centerOfRotation = new Vector2(gridPosition.X, gridPosition.Y + 1) * TowerDefense.Grid.SquareSize;
+
+                            var posAndAngle = CurveMove(currentAngle, targetAngle, movementSpeed, centerOfRotation, gameTime);
+
+                            debugCenter = centerOfRotation;
+
+                            onScreenPosition = posAndAngle.Position;
+                            currentAngle = posAndAngle.Angle;
+
+                            if (currentAngle >= targetAngle)
+                            {
+                                pathIndex++;
+
+                                // Round up, because floats
+                                onScreenPosition.Y = (float)Math.Ceiling(onScreenPosition.Y);
+                                onScreenPosition.X = (float)Math.Ceiling(onScreenPosition.X);
+
+                                newAngle = true;
+                                currentDirection = Direction.Down;
+                            }
+                        }
+                        else if (currentDirection == Direction.Up)
+                        {
+                            if (newAngle)
+                            {
+                                currentAngle = 270;
+                                newAngle = false;
+                            }
+
+                            float targetAngle = 180;
+                            Vector2 centerOfRotation = new Vector2(gridPosition.X, gridPosition.Y + 1) * TowerDefense.Grid.SquareSize;
+
+                            var posAndAngle = CurveMove(currentAngle, targetAngle, movementSpeed, centerOfRotation, gameTime);
+
+                            debugCenter = centerOfRotation;
+
+                            onScreenPosition = posAndAngle.Position;
+                            currentAngle = posAndAngle.Angle;
+
+                            if (currentAngle <= targetAngle)
+                            {
+                                pathIndex++;
+
+                                // Round up, because floats
+                                onScreenPosition.Y = (float)Math.Ceiling(onScreenPosition.Y);
+                                onScreenPosition.X = (float)Math.Floor(onScreenPosition.X)-1;
+
+                                newAngle = true;
+                                currentDirection = Direction.Left;
+                            }
+                        }
+                    }
                     break;
                 case Grid.TileKinds.TurnFromEntryRightToLowerLeft:
                     {
-                        if (newAngle)
+                        if (currentDirection == Direction.Up)
                         {
-                            currentAngle = 180;
-                            newAngle = false;
+                            if (newAngle)
+                            {
+                                currentAngle = 180;
+                                newAngle = false;
+                            }
+                            float distanceToTravel = .5f * (float)Math.PI * TowerDefense.Grid.SquareSize / 2;
+                            float thyme = distanceToTravel / movementSpeed;
+                            float angularVelocity = 90 / thyme;
+
+                            float targetAngle = 270;
+                            Vector2 centerOfRotation = new Vector2(gridPosition.X + 1, gridPosition.Y + 1) * TowerDefense.Grid.SquareSize;
+
+                            float radius = TowerDefense.Grid.SquareSize / 2;
+
+                            debugCenter = centerOfRotation;
+
+                            targetOnScreenPosition = RotateWalk(radius, currentAngle + 1, centerOfRotation);
+
+                            onScreenPosition = targetOnScreenPosition;
+
+
+                            currentAngle += angularVelocity * (float)(gameTime.ElapsedGameTime.TotalSeconds);
+
+                            if (currentAngle >= targetAngle)
+                            {
+                                pathIndex++;
+
+                                //onScreenPosition.Y = (float)Math.Floor(onScreenPosition.Y) - 1;
+                                onScreenPosition.X = (float)Math.Ceiling(onScreenPosition.X);
+                                newAngle = true;
+                                currentDirection = Direction.Right;
+                            }
                         }
-                        float distanceToTravel = .5f * (float)Math.PI * TowerDefense.Grid.SquareSize / 2;
-                        float thyme = distanceToTravel / movementSpeed;
-                        float angularVelocity = 90 / thyme;
-
-                        float targetAngle = 270;
-                        Vector2 centerOfRotation = new Vector2(gridPosition.X+1, gridPosition.Y+1) * TowerDefense.Grid.SquareSize;
-
-                        float radius = TowerDefense.Grid.SquareSize / 2;
-
-                        debugCenter = centerOfRotation;
-
-                        targetOnScreenPosition = RotateWalk(radius, currentAngle + 1, centerOfRotation);
-
-                        onScreenPosition = targetOnScreenPosition;
-
-
-                        currentAngle += angularVelocity * (float)(gameTime.ElapsedGameTime.TotalSeconds);
-
-                        if (currentAngle >= targetAngle)
+                        else if(currentDirection == Direction.Left)
                         {
-                            pathIndex++;
+                            if (newAngle)
+                            {
+                                currentAngle = 270;
+                                newAngle = false;
+                            }
 
-                            //onScreenPosition.Y = (float)Math.Floor(onScreenPosition.Y) - 1;
-                            onScreenPosition.X = (float)Math.Ceiling(onScreenPosition.X);
-                            newAngle = true;
+                            float targetAngle = 180;
+                            Vector2 centerOfRotation = new Vector2(gridPosition.X+1, gridPosition.Y + 1) * TowerDefense.Grid.SquareSize;
+
+                            var posAndAngle = CurveMove(currentAngle, targetAngle, movementSpeed, centerOfRotation, gameTime);
+
+                            debugCenter = centerOfRotation;
+
+                            onScreenPosition = posAndAngle.Position;
+                            currentAngle = posAndAngle.Angle;
+
+                            if (currentAngle <= targetAngle)
+                            {
+                                pathIndex++;
+
+                                // Round up, because floats
+                                onScreenPosition.Y = (float)Math.Ceiling(onScreenPosition.Y);
+                                onScreenPosition.X = (float)Math.Ceiling(onScreenPosition.X);
+
+                                newAngle = true;
+                                currentDirection = Direction.Down;
+                            }
                         }
                     }
 
                     break;
                 case Grid.TileKinds.TurnFromEntryAboveToLowerRight:
                     {
-                        if (newAngle)
+                        if (currentDirection == Direction.Down)
                         {
-                            currentAngle = 180;
-                            newAngle = false;
+                            if (newAngle)
+                            {
+                                currentAngle = 180;
+                                newAngle = false;
+                            }
+
+                            float targetAngle = 90;
+                            Vector2 centerOfRotation = new Vector2(gridPosition.X + 1, gridPosition.Y) * TowerDefense.Grid.SquareSize;
+
+                            var posAndAngle = CurveMove(currentAngle, targetAngle, movementSpeed, centerOfRotation, gameTime);
+
+                            onScreenPosition = posAndAngle.Position;
+                            currentAngle = posAndAngle.Angle;
+
+                            if (currentAngle <= targetAngle)
+                            {
+                                pathIndex++;
+
+                                // Round up, because floats
+                                onScreenPosition.Y = (float)Math.Ceiling(onScreenPosition.Y);
+                                onScreenPosition.X = (float)Math.Ceiling(onScreenPosition.X);
+
+                                currentDirection = Direction.Right;
+                                newAngle = true;
+                            }
                         }
-                        float distanceToTravel = .5f * (float)Math.PI * TowerDefense.Grid.SquareSize / 2;
-                        float thyme = distanceToTravel / movementSpeed;
-                        float angularVelocity = 90 / thyme;
-
-                        float targetAngle = 90;
-                        Vector2 centerOfRotation = new Vector2(gridPosition.X + 1, gridPosition.Y) * TowerDefense.Grid.SquareSize;
-
-                        float radius = TowerDefense.Grid.SquareSize / 2;
-
-                        debugCenter = centerOfRotation;
-
-                        //Debug.WriteLine(centerOfRotation - debugMousePosition);
-
-                        targetOnScreenPosition = RotateWalk(radius, currentAngle - 1, centerOfRotation);
-                        //var moveAmount = (float)(movementSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                        //var moveDirection = targetOnScreenPosition - onScreenPosition;
-                        //moveDirection.Normalize();
-
-                        //Debug.WriteLine(currentAngle);
-
-                        //var moveVector = moveDirection * moveAmount;
-                        //onScreenPosition += moveVector;
-
-                        onScreenPosition = targetOnScreenPosition;
-
-                        //Vector2 test = onScreenPosition - targetOnScreenPosition;
-                        //if (Math.Abs(test.X) < 1f && Math.Abs(test.Y) < 1f) //&& pathIndex + 2 < TowerDefense.Grid.Map.Path.Count)
-                        //{
-                            currentAngle -= angularVelocity* (float)(gameTime.ElapsedGameTime.TotalSeconds);
-                        //}
-                        if (currentAngle <= targetAngle)
+                        else if(currentDirection == Direction.Left)
                         {
-                            pathIndex++;
+                            if (newAngle)
+                            {
+                                currentAngle = 180;
+                                newAngle = false;
+                            }
 
-                            // Round up, because floats
-                            onScreenPosition.Y = (float)Math.Ceiling(onScreenPosition.Y);
-                            onScreenPosition.X = (float)Math.Ceiling(onScreenPosition.X);
+                            float targetAngle = 90;
+                            Vector2 centerOfRotation = new Vector2(gridPosition.X, gridPosition.Y) * TowerDefense.Grid.SquareSize;
 
-                            newAngle = true;
+                            var posAndAngle = CurveMove(currentAngle, targetAngle, movementSpeed, centerOfRotation, gameTime);
+
+                            debugCenter = centerOfRotation;
+
+                            onScreenPosition = posAndAngle.Position;
+                            currentAngle = posAndAngle.Angle;
+
+                            if (currentAngle <= targetAngle)
+                            {
+                                pathIndex++;
+
+                                // Round up, because floats
+                                onScreenPosition.Y = (float)Math.Ceiling(onScreenPosition.Y);
+                                onScreenPosition.X = (float)Math.Floor(onScreenPosition.X)-1;
+
+                                newAngle = true;
+                                currentDirection = Direction.Left;
+                            }
                         }
                     }
                     break;
@@ -214,40 +406,104 @@ namespace TowerDefense
             var mouseState = Mouse.GetState();
             debugMousePosition = mouseState.Position.ToVector2();
 
+            UnitState = UnitStates.Alive;
 
+            #region helpingStuff
 
-            //Debug.WriteLine(TowerDefense.Grid[targetOnScreenPosition].TileKind);
+            static Direction directionHelper2Vectors(Vector2 start, Vector2 end)
+            {
+                //mod itself+1
+                int x = 0;
+                //x %= x + 1;//this doent work if going right to left
+                //x -= x-1;
+                int y = 0;
 
+                if (start.X - end.X < 0)
+                {
+                    return Direction.Right;
+                    x = 1;
+                }
+                else if (start.X - end.X > 0)
+                {
+                    return Direction.Left;
+                    x = -1;
+                }
+                if (start.Y - end.Y < 0)
+                {
+                    return Direction.Down;
+                    y = 1;
+                }
+                else if (start.Y - end.Y > 0)
+                {
+                    return Direction.Up;
+                    y = -1;
+                }
 
-            //var moveAmount = (float)(movementSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-            //var moveDirection = targetOnScreenPosition - onScreenPosition;
-            //moveDirection.Normalize();
+                return Direction.Down;
+            }
 
-            //var moveVector = moveDirection * moveAmount;
-            //onScreenPosition += moveVector;
-            //Vector2 test = onScreenPosition - targetOnScreenPosition;
+            static Direction directionHelper1Vector(Vector2 pos)
+            {
+                //mod itself+1
+                int x = 0;
+                //x %= x + 1;//this doent work if going right to left
+                //x -= x-1;
+                int y = 0;
 
-            //if (Math.Abs(test.X) < .01f && Math.Abs(test.Y) < .01f && pathIndex+2 < TowerDefense.Grid.Map.Path.Count)
-            //{
-            //    pathIndex++;
-            //}
-            //Debug.WriteLine(onScreenPosition);
+                if (pos.X < 0)
+                {
+                    return Direction.Left;
+                    x = 1;
+                }
+                else if (pos.X > 0)
+                {
+                    return Direction.Right;
+                    x = -1;
+                }
+                if (pos.Y < 0)
+                {
+                    return Direction.Up;
+                    y = 1;
+                }
+                else if (pos.Y > 0)
+                {
+                    return Direction.Down;
+                    y = -1;
+                }
+
+                return Direction.Down;
+            }
+
+            static (Vector2 Position, float Angle) CurveMove(float currentAngle, float targetAngle, float movementSpeed, Vector2 centerOfRotation, GameTime gameTime)
+            {
+                float distanceToTravel = .5f * (float)Math.PI * TowerDefense.Grid.SquareSize / 2;
+                float thyme = distanceToTravel / movementSpeed;
+                float angularVelocity = 90 / thyme;
+
+                float radius = TowerDefense.Grid.SquareSize / 2;
+
+                if (currentAngle > targetAngle)
+                {
+                    return (RotateWalk(radius, currentAngle - 1, centerOfRotation), currentAngle - angularVelocity * (float)(gameTime.ElapsedGameTime.TotalSeconds));
+                }
+                else
+                {
+                    return (RotateWalk(radius, currentAngle + 1, centerOfRotation), currentAngle + angularVelocity * (float)(gameTime.ElapsedGameTime.TotalSeconds));
+                }
+            }
+
+            static Vector2 RotateWalk(float radius, float angle, Vector2 center)
+            {
+                return new Vector2((radius * (float)Math.Cos(angle * Math.PI / 180)) + center.X, (radius * (float)Math.Sin(angle * Math.PI / 180)) + center.Y);
+            }
+
+            #endregion helpingStuff
         }
 
-        Vector2 RotateWalk(float radius, float angle, Vector2 center)
+        public override void Draw(SpriteBatch sb)
         {
-            return new Vector2((radius * (float)Math.Cos(angle * Math.PI / 180)) + center.X, (radius * (float)Math.Sin(angle * Math.PI / 180)) + center.Y);
+            base.Draw(sb);
+            sb.Draw(GridBasedGame.Pixel, debugCenter, null, Color.Green, 0f, Vector2.Zero, 20f, SpriteEffects.None, 0f );
         }
-
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            //spriteBatch.Draw(texture, new Rectangle((onScreenPosition).ToPoint()/*(Grid.Map.Path[debugMapTraverserPositionIndex] * Grid.SquareSize).ToPoint()*/, new Point(TowerDefense.Grid.SquareSize / 4, TowerDefense.Grid.SquareSize / 4)), Color.Red);
-
-            var drawPosition = onScreenPosition;// + new Vector2(TowerDefense.Grid.SquareSize / 2);
-            spriteBatch.Draw(texture, debugCenter, null, Color.Red, rotation: 0f, origin: Vector2.One / 2f, scale: Vector2.One * 20, SpriteEffects.None, layerDepth: 0f);
-
-            spriteBatch.Draw(texture, drawPosition, null, Color.Blue, rotation: 0f, origin: Vector2.One / 2f, scale: Vector2.One * 20, SpriteEffects.None, layerDepth: 0f);
-        }
-
     }
 }

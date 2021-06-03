@@ -15,7 +15,7 @@ namespace TowerDefense
         public Grid.TileKinds TileKind { get; internal set; }
 
         //put in sprite
-        Vector2 onScreenPosition => TowerDefense.Grid[this];
+        public Vector2 onScreenPosition => TowerDefense.Grid[this];
         Vector2 origin;
         Texture2D texture; 
         //square/pic
@@ -58,7 +58,7 @@ namespace TowerDefense
             {
                 spriteBatch.Draw(texture, onScreenPosition, sourceRectangle: null, Color.White, rotation: 0f, origin, scale, SpriteEffects.None, layerDepth: 0f);
             }
-            spriteBatch.Draw(TowerDefense.DebugGridSquare, onScreenPosition, Color.White);
+            //spriteBatch.Draw(TowerDefense.DebugGridSquare, onScreenPosition, Color.White);
             //spriteBatch.Draw(TowerDefense.Pixel, new Rectangle((int)onScreenPosition.X, (int)onScreenPosition.Y, TowerDefense.Grid.SquareSize, TowerDefense.Grid.SquareSize), Color.Red * 0.25f);
         }
     }

@@ -25,5 +25,8 @@
     <None Update="MapFiles\mapFileFormat.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="MapFiles\vector2JsonFormat.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

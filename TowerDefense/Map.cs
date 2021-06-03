@@ -92,6 +92,7 @@ namespace TowerDefense
             map.Path.Add(map.Vertices[map.Vertices.Count - 1]);
             map.Path.Add(map.WalkOutFrom);
 
+            
             return map;
 
 
