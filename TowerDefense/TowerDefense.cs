@@ -61,6 +61,8 @@ namespace TowerDefense
         {
             // Create a new SpriteBatch, which can be used to draw textures.
 
+            AnimatedSprite<PlayerAnimationStates>.AnimationFileFormatTest(@"AnimationFiles\animationFileFormatTest.json");
+
             ObjectPool<Unit>.Instance.Populate(() => new Unit(100, Pixel), 1000);
 
             units = new List<Unit>();

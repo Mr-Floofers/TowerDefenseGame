@@ -1,0 +1,126 @@
+{
+  "Running": [
+    {
+      "AssetName": "blah",
+      "SourceRectangle": {
+        "Left": 0,
+        "Right": 0,
+        "Top": 0,
+        "Bottom": 0,
+        "IsEmpty": true,
+        "Location": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 0,
+          "Y": 0
+        },
+        "Center": {
+          "X": 0,
+          "Y": 0
+        },
+        "X": 0,
+        "Y": 0,
+        "Width": 0,
+        "Height": 0
+      },
+      "Origin": {
+        "X": 0,
+        "Y": 0
+      }
+    },
+    {
+      "AssetName": "blah",
+      "SourceRectangle": {
+        "Left": 0,
+        "Right": 0,
+        "Top": 0,
+        "Bottom": 0,
+        "IsEmpty": true,
+        "Location": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 0,
+          "Y": 0
+        },
+        "Center": {
+          "X": 0,
+          "Y": 0
+        },
+        "X": 0,
+        "Y": 0,
+        "Width": 0,
+        "Height": 0
+      },
+      "Origin": {
+        "X": 0,
+        "Y": 0
+      }
+    }
+  ],
+  "Idle": [
+    {
+      "AssetName": "blah",
+      "SourceRectangle": {
+        "Left": 0,
+        "Right": 0,
+        "Top": 0,
+        "Bottom": 0,
+        "IsEmpty": true,
+        "Location": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 0,
+          "Y": 0
+        },
+        "Center": {
+          "X": 0,
+          "Y": 0
+        },
+        "X": 0,
+        "Y": 0,
+        "Width": 0,
+        "Height": 0
+      },
+      "Origin": {
+        "X": 0,
+        "Y": 0
+      }
+    },
+    {
+      "AssetName": "blah",
+      "SourceRectangle": {
+        "Left": 0,
+        "Right": 0,
+        "Top": 0,
+        "Bottom": 0,
+        "IsEmpty": true,
+        "Location": {
+          "X": 0,
+          "Y": 0
+        },
+        "Size": {
+          "X": 0,
+          "Y": 0
+        },
+        "Center": {
+          "X": 0,
+          "Y": 0
+        },
+        "X": 0,
+        "Y": 0,
+        "Width": 0,
+        "Height": 0
+      },
+      "Origin": {
+        "X": 0,
+        "Y": 0
+      }
+    }
+  ]
+}
